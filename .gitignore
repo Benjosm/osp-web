@@ -1,0 +1,66 @@
+# IDE and Editor Configuration
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Python Cache and Virtual Environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+.env/
+.tox/
+.nox/
+poetry.lock # Keep if using Poetry's lock file for installation verification, otherwise ignore if managing dependencies separately.
+
+# FastAPI Development Server Output
+*.log
+
+# Build Artifacts and Output Directories
+dist/
+build/
+*.egg-info/
+
+# SQLite Databases (for development)
+*.sqlite
+*.sqlite3
+*.db # General SQLite database files
+
+# Compiled Extensions
+*.so
+*.a
+
+# Test Artifacts
+.pytest_cache/
+htmlcov/
+coverage/
+
+# Docker
+docker-compose.yml.lock
+.dockerignore
+docker/
+Dockerfile.prod # If you have a separate production Dockerfile not meant for Git
+
+# Temporary and Scratch Files
+*.swp
+*~
+*.bak
+
+# Secrets and Environment Variables
+.env
+*.env.* # e.g., .env.dev, .env.prod but not .env.example
+
+# PostgreSQL client specific files (if any are generated locally and not part of the project's intent)
+# e.g., if pg_hba.conf or postgresql.conf were generated locally and not committed
+
+# Mobile Build Artifacts (if they were to be generated locally)
+# These would typically be in their own directories, e.g., osp-android/build/
+
+# OS Generated Files
+.DS_Store
+Thumbs.db
