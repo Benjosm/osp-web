@@ -20,7 +20,7 @@ class AuthService {
 
   signOut(): void {
     localStorage.removeItem('token');
-    window.location.href = '/';
+    window.location.href = '/signin';
   }
 }
 
