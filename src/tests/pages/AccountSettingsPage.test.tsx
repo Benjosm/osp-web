@@ -1,6 +1,6 @@
 import { describe, beforeEach, test, expect, vi } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { confirmAlert } from 'react-confirm-alert';
 import AccountSettingsPage from '../../pages/AccountSettingsPage';
 import axios from 'axios';
