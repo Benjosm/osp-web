@@ -24,7 +24,8 @@ const AccountSettingsPage: React.FC = () => {
       authService.signOut();
     } catch (err: any) {
       let message = 'An unknown error occurred.';
-
+      let shouldSignOut = false;
+      
       if (!err.response) {
         // Network error (e.g., no connection, timeout)
         message = 'Unable to connect to the server. Please check your internet connection and try again.';
@@ -33,6 +34,7 @@ const AccountSettingsPage: React.FC = () => {
           case 401:
             // Unauthorized: invalid or expired token
             message = 'Authentication expired. Please sign in again.';
+            shouldSignOut = true;
             break;
           case 409:
             // Conflict: deletion already in progress
@@ -48,7 +50,7 @@ const AccountSettingsPage: React.FC = () => {
             break;
         }
       }
-
+      
       // Use react-confirm-alert for user-friendly display
       confirmAlert({
         title: 'Account Deletion Failed',
@@ -57,7 +59,9 @@ const AccountSettingsPage: React.FC = () => {
           {
             label: 'OK',
             onClick: () => {
-              // Just close the alert
+              if (shouldSignOut) {
+                authService.signOut();
+              }
             }
           }
         ],
