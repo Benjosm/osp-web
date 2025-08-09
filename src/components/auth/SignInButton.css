@@ -1,0 +1,80 @@
+.signin-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
+
+.provider-select {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.signin-button {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: white;
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.3s;
+}
+
+.signin-button:hover {
+  background-color: #f5f5f5;
+}
+
+.signin-button.google svg {
+  width: 18px;
+  height: 18px;
+}
+
+.apple-signin-button {
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 12px;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  background-color: white;
+  color: #3c4043;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.3s;
+}
+
+.apple-signin-button:hover {
+  background-color: #f8f9fa;
+  border-color: #c6c6c6;
+}
+
+.signin-button.google {
+  border: 1px solid #dadce0;
+  color: #3c4043;
+  background-color: white;
+}
+
+.signin-button.google:hover {
+  background-color: #f8f9fa;
+  border-color: #c6c6c6;
+}
+
+/* Removed invalid CSS syntax */
