@@ -1,9 +1,33 @@
 {
+  "name": "osp-web",
+  "version": "0.1.0",
+  "private": true,
   "dependencies": {
     "@react-oauth/google": "^0.12.2",
     "apple-signin-react": "^1.0.2",
     "dotenv": "^17.2.1",
     "jwt-decode": "^4.0.0",
-    "react-oauth-flow": "^1.2.0"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.8.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.27",
+    "@types/react-dom": "^18.0.11",
+    "@typescript-eslint/eslint-plugin": "^5.47.0",
+    "@typescript-eslint/parser": "^5.47.0",
+    "@vitejs/plugin-react": "^3.0.0",
+    "eslint": "^8.32.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.3.5",
+    "typescript": "^4.9.3",
+    "vite": "^4.0.0",
+    "vite-plugin-history": "^1.0.2"
+  },
+  "scripts": {
+    "start": "vite --port 8001",
+    "build": "tsc && vite build",
+    "serve": "vite preview",
+    "dev": "vite --port 8001"
   }
 }
