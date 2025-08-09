@@ -1,67 +1,75 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
+import authService from '../services/auth.service';
 
 const AccountSettingsPage: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Get user ID from token (assuming JWT and available in localStorage)
-  const getTokenPayload = (token: string) => {
-    try {
-      return JSON.parse(atob(token.split('.')[1]));
-    } catch (e) {
-      return null;
-    }
-  };
-
-  const getUserId = (): string | null => {
-    const token = localStorage.getItem('token');
-    if (!token) return null;
-    const payload = getTokenPayload(token);
-    return payload?.userId || payload?.sub || null; // Adjust based on JWT structure
-  };
-
   const handleDeleteAccount = async () => {
     setIsLoading(true);
     setError(null);
-    const userId = getUserId();
-
-    if (!userId) {
-      setError('User ID not found. Please sign in again.');
-      setIsLoading(false);
-      return;
-    }
-
+  
     try {
-      await axios.delete(`/api/v1/users/${userId}`, {
+      await axios.delete(`/api/v1/users/current`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
 
-      // On success: clear token and redirect
-      localStorage.removeItem('token');
-      window.location.href = '/';
+      // On success: clear auth state and redirect
+      authService.signOut();
     } catch (err: any) {
-      const message =
-        err.response?.data?.message || 'Failed to delete account. Please try again.';
-      setError(message);
+      let message = 'An unknown error occurred.';
+
+      if (!err.response) {
+        // Network error (e.g., no connection, timeout)
+        message = 'Unable to connect to the server. Please check your internet connection and try again.';
+      } else {
+        switch (err.response.status) {
+          case 401:
+            // Unauthorized: invalid or expired token
+            message = 'Authentication expired. Please sign in again.';
+            break;
+          case 409:
+            // Conflict: deletion already in progress
+            message = 'Account deletion is already in progress.';
+            break;
+          case 500:
+            // Internal Server Error
+            message = 'An error occurred while deleting your account. Please try again later.';
+            break;
+          default:
+            // Other server errors
+            message = 'An error occurred while deleting your account. Please try again later.';
+            break;
+        }
+      }
+
+      // Use react-confirm-alert for user-friendly display
+      confirmAlert({
+        title: 'Account Deletion Failed',
+        message: message,
+        buttons: [
+          {
+            label: 'OK',
+            onClick: () => {
+              // Just close the alert
+            }
+          }
+        ],
+        closeOnClickOutside: true,
+        closeOnEscape: true
+      });
+
       setIsLoading(false);
     }
   };
 
-  const openModal = () => {
-    setIsModalOpen(true);
-    setError(null);
-  };
-
-  const closeModal = () => {
-    if (!isLoading) {
-      setIsModalOpen(false);
-      setError(null);
-    }
-  };
+  // No modal state needed — using react-confirm-alert instead
 
   return (
     <div style={{ padding: '2rem' }}>
@@ -73,105 +81,42 @@ const AccountSettingsPage: React.FC = () => {
           <strong>Warning:</strong> This action is permanent and cannot be undone.
           All your data will be lost.
         </p>
-        <button onClick={openModal} disabled={isLoading} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '0.5rem 1rem', cursor: 'pointer' }}>
-          {isLoading ? 'Loading...' : 'Delete Account'}
+        <button
+          onClick={() => {
+            confirmAlert({
+              title: 'Confirm Account Deletion',
+              message: 'Are you sure you want to delete your account? This action cannot be undone.',
+              buttons: [
+                {
+                  label: 'Cancel',
+                  onClick: () => { /* No action needed */ }
+                },
+                {
+                  label: 'Delete',
+                  className: 'delete-button',
+                  onClick: handleDeleteAccount
+                }
+              ],
+              closeOnClickOutside: false,
+              closeOnEscape: false
+            });
+            setError(null);
+          }}
+          disabled={isLoading}
+          style={{
+            backgroundColor: '#dc3545',
+            color: 'white',
+            border: 'none',
+            padding: '0.5rem 1rem',
+            cursor: 'pointer',
+            marginTop: '0.5rem'
+          }}
+        >
+          {isLoading ? 'Deleting...' : 'Delete Account'}
         </button>
       </div>
 
-      {/* Confirmation Modal */}
-      {isModalOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              background: 'white',
-              padding: '2rem',
-              borderRadius: '8px',
-              width: '90%',
-              maxWidth: '500px',
-              textAlign: 'center',
-            }}
-          >
-            <h2>Confirm Account Deletion</h2>
-            <p>
-              <strong>Are you sure?</strong> This action is <strong>permanent</strong> and{' '}
-              <strong>cannot be undone</strong>. All your data will be permanently removed.
-            </p>
-
-            {error && (
-              <div
-                style={{
-                  color: '#721c24',
-                  backgroundColor: '#f8d7da',
-                  borderColor: '#f5c6cb',
-                  padding: '0.75rem 1.25rem',
-                  marginBottom: '1rem',
-                  border: '1px solid transparent',
-                  borderRadius: '0.25rem',
-                }}
-              >
-                {error}
-                <button
-                  onClick={() => {
-                    setError(null);
-                    handleDeleteAccount();
-                  }}
-                  style={{
-                    marginLeft: '0.5rem',
-                    padding: '0.25rem 0.5rem',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Retry
-                </button>
-              </div>
-            )}
-
-            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-              <button
-                onClick={closeModal}
-                disabled={isLoading}
-                style={{
-                  padding: '0.5rem 1rem',
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteAccount}
-                disabled={isLoading}
-                style={{
-                  padding: '0.5rem 1rem',
-                  backgroundColor: '#dc3545',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
-              >
-                {isLoading ? 'Deleting...' : 'Confirm Delete'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            // No modal needed — using react-confirm-alert instead
     </div>
   );
 };
