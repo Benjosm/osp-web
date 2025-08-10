@@ -1,15 +1,18 @@
 import { describe, beforeEach, test, expect, vi } from 'vitest';
-import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { confirmAlert } from 'react-confirm-alert';
 import AccountSettingsPage from '../../pages/AccountSettingsPage';
 import axios from 'axios';
-import * as authService from '../../services/auth.service';
+import authService from '../../services/auth.service';
 
 // Mock dependencies
 vi.mock('axios');
 vi.mock('react-confirm-alert');
-vi.mock('../../services/auth.service');
+vi.mock('../../services/auth.service', () => ({
+  default: {
+    signOut: vi.fn(),
+  },
+}));
 
 // Mock window object
 const mockLocation = { href: '' };

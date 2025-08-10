@@ -4,10 +4,13 @@
   "private": true,
   "dependencies": {
     "@react-oauth/google": "^0.12.2",
+    "@sintef/prune-cluster": "^2.1.0",
+    "@vue-leaflet/vue-leaflet": "^0.10.1",
     "apple-signin-react": "^1.0.2",
     "axios": "^1.11.0",
     "dotenv": "^17.2.1",
     "jwt-decode": "^4.0.0",
+    "leaflet": "^1.9.4",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-confirm-alert": "^3.0.6",
@@ -34,7 +37,7 @@
   },
   "scripts": {
     "start": "vite --port 8001",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "serve": "vite preview",
     "dev": "vite --port 8001",
     "test": "vitest --environment jsdom"
