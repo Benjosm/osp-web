@@ -6,6 +6,7 @@ import history from 'vite-plugin-history'
 export default defineConfig({
   plugins: [react(), history()],
   server: {
+    host: '0.0.0.0',
     port: 8001,
     strictPort: true,
     proxy: {
@@ -20,5 +21,5 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
   },
-  publicDir: 'public'
-})
+  }
+)

@@ -6,7 +6,7 @@ import authService from '../services/auth.service';
 
 const AccountSettingsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const setError = useState<string | null>(null)[1];
 
   // Get user ID from token (assuming JWT and available in localStorage)
   const handleDeleteAccount = async () => {
