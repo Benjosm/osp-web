@@ -55,10 +55,10 @@ const route = useRoute();
 // State to track if the user is authenticated
 const isAuthenticated = ref(!!localStorage.getItem('token'));
 
-// Check if current route should be fullscreen (assuming your home route is the media viewer)
+// Check if current route should be fullscreen
 const isFullscreenRoute = computed(() => {
-  // Adjust this condition based on your route names/paths
-  return route.path === '/' || route.name === 'home';
+  if (!route) return false; // safety check
+  return route.path === '/' || route.name === 'Home';
 });
 
 // Show different header styles based on route type
@@ -67,8 +67,6 @@ const isFullscreenRoute = computed(() => {
 const handleSignOut = () => {
   localStorage.removeItem('token');
   isAuthenticated.value = false;
-  // In Vue, it's better to use the router for navigation
-  // but window.location.href is fine for a full refresh on logout.
   window.location.href = '/';
 };
 
