@@ -1,0 +1,41 @@
+# Stage 1: Build the base image with dependencies
+# Use an official Node.js LTS image (slim version for smaller size)
+FROM node:20-slim
+
+# Set environment variables
+ENV NODE_ENV=development
+
+# Install system dependencies required for the entrypoint script (curl, jq) and for installing ngrok (wget, tar)
+# This is done in a single RUN layer to reduce image size
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    jq \
+    wget \
+    tar \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user 'node' for security
+RUN useradd --create-home --shell /bin/bash node
+
+# Set the working directory
+WORKDIR /app
+
+# Copy dependency definition files
+# Use chown to set the owner to the non-root user
+COPY --chown=node:node package.json package-lock.json* ./
+
+# Switch to the non-root user
+USER node
+
+# Install npm dependencies.
+# Using 'npm install' is suitable for development.
+RUN npm install
+
+# Copy the rest of the application source code
+# The owner is already 'node' from the USER instruction above
+COPY . .
+
+# Expose the port the Vite app will run on
+EXPOSE 8001
+
+CMD ["npm", "start"]

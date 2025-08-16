@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 type Media = {
   id: string;
   title: string;
@@ -40,7 +42,7 @@ const MediaDetailPage: React.FC = () => {
       setLoadingMedia(true);
       setErrorMedia(null);
       try {
-        const response = await fetch(`/api/v1/media/${mediaId}`);
+        const response = await fetch(`${API_BASE_URL}/media/${mediaId}`);
         if (!response.ok) throw new Error(`Error: ${response.status}`);
         const data: Media = await response.json();
         setMedia(data);
@@ -56,7 +58,7 @@ const MediaDetailPage: React.FC = () => {
       setLoadingComments(true);
       setErrorComments(null);
       try {
-        const response = await fetch(`/api/v1/comments/${mediaId}`);
+        const response = await fetch(`${API_BASE_URL}/comments/${mediaId}`);
         if (!response.ok) throw new Error(`Error: ${response.status}`);
         const data: Comment[] = await response.json();
         setComments(data);
@@ -86,7 +88,7 @@ const MediaDetailPage: React.FC = () => {
       setLoadingPostComment(true);
       
       try {
-        const response = await fetch('/api/v1/comments', {
+        const response = await fetch(`${API_BASE_URL}/comments`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

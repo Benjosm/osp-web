@@ -1,11 +1,11 @@
 import axios from 'axios';
 
-const API_BASE_URL = '/api/v1/auth/login';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 class AuthService {
   async signIn(username: string, password: string): Promise<any> {
     try {
-      const response = await axios.post(API_BASE_URL, { username, password });
+      const response = await axios.post(`${API_BASE_URL}/auth/signin`, { username, password });
       const token = response.data.token;
 
       if (token) {

@@ -4,6 +4,8 @@ import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import authService from '../services/auth.service';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const AccountSettingsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const setError = useState<string | null>(null)[1];
@@ -14,7 +16,7 @@ const AccountSettingsPage: React.FC = () => {
     setError(null);
   
     try {
-      await axios.delete(`/api/v1/users/current`, {
+      await axios.delete(`${API_BASE_URL}/users/current`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
