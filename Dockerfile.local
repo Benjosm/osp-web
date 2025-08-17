@@ -1,41 +1,45 @@
-# Stage 1: Build the base image with dependencies
-# Use an official Node.js LTS image (slim version for smaller size)
-FROM node:20-slim
+# --- Stage 1: Build ---
+# Use an official Node.js image to build the Vue app
+FROM node:20-slim as builder
 
-# Set environment variables
-ENV NODE_ENV=development
-
-# Install system dependencies required for the entrypoint script (curl, jq) and for installing ngrok (wget, tar)
-# This is done in a single RUN layer to reduce image size
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    jq \
-    wget \
-    tar \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create a non-root user 'node' for security
-RUN useradd --create-home --shell /bin/bash node
-
-# Set the working directory
 WORKDIR /app
 
-# Copy dependency definition files
-# Use chown to set the owner to the non-root user
-COPY --chown=node:node package.json package-lock.json* ./
+ARG VITE_GOOGLE_CLIENT_ID
+ARG VITE_API_BASE_URL
+ARG VITE_APPLE_CLIENT_ID
+ARG VITE_APPLE_REDIRECT_URI
 
-# Switch to the non-root user
-USER node
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_APPLE_CLIENT_ID=$VITE_APPLE_CLIENT_ID
+ENV VITE_APPLE_REDIRECT_URI=$VITE_APPLE_REDIRECT_URI
 
-# Install npm dependencies.
-# Using 'npm install' is suitable for development.
+# Copy package files and install dependencies
+COPY package*.json ./
 RUN npm install
 
-# Copy the rest of the application source code
-# The owner is already 'node' from the USER instruction above
+# Copy the rest of the app's source code
 COPY . .
 
-# Expose the port the Vite app will run on
-EXPOSE 8001
+# Build the app for production. This creates a '/app/dist' folder.
+RUN npm run build
 
-CMD ["npm", "start"]
+
+# --- Stage 2: Serve ---
+# Use a lightweight Nginx image
+FROM nginx:1.25-alpine
+
+# Remove the default Nginx configuration
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Copy our custom Nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/
+
+# Copy the built application from the 'builder' stage to Nginx's web root
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Expose port 80, which is what Nginx listens on by default
+EXPOSE 80
+
+# The default Nginx entrypoint will start the server
+CMD ["nginx", "-g", "daemon off;"]

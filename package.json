@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest --environment jsdom"
+    "test": "vitest --environment jsdom",
+    "start": "vite"
   },
   "dependencies": {
     "@sintef/prune-cluster": "^2.1.0",

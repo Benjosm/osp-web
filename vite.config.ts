@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
   server: {
@@ -10,15 +9,17 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://backend:8000',
         changeOrigin: true,
         secure: false,
       }
-    }
+    },
+    allowedHosts: [
+      'osp.doublethinksolutions.com'
+    ]
   },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
   },
-  }
-)
+})

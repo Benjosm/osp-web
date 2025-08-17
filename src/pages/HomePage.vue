@@ -122,7 +122,12 @@
             <h3>{{ currentModalItem.title }}</h3>
             <p><strong>Captured:</strong> {{ new Date(currentModalItem.createdAt).toLocaleString() }}</p>
             <p><strong>Location:</strong> {{ currentModalItem.location.lat.toFixed(6) }}, {{ currentModalItem.location.lng.toFixed(6) }}</p>
-            <p><strong>Orientation:</strong> {{ currentModalItem.orientation ?? 'N/A' }}</p>
+            <p v-if="currentModalItem.orientation">
+              <strong>Orientation:</strong>
+              Azimuth: {{ currentModalItem.orientation.azimuth }},
+              Pitch: {{ currentModalItem.orientation.pitch }},
+              Roll: {{ currentModalItem.orientation.roll }}
+            </p>
             <p><strong>Trust Score:</strong> {{ currentModalItem.trustScore ?? 'N/A' }}</p>
             <p><strong>User ID:</strong> {{ currentModalItem.userId }}</p>
           </div>
@@ -355,7 +360,7 @@ const fetchMedia = async () => {
       .map(item => ({
         id: item.id,
         title: `Media from ${new Date(item.capture_time).toLocaleDateString()}`,
-        thumbnailUrl: item.file_path,
+        thumbnailUrl: item.image_url,
         createdAt: item.capture_time,
         location: { lat: item.lat, lng: item.lng },
         coordinates: [item.lat, item.lng],
