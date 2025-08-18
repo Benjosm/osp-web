@@ -265,15 +265,18 @@ const iconDefault = icon({
 
 // Function to calculate radius from zoom level (approximate)
 const getRadiusFromZoom = (zoom) => {
-  // The radius of the Earth in meters, approximately. This will be our max search radius.
-  const maxRadius = 20100000;
+  // The circumference of the Earth in meters, approximately. This will be our max search radius.
+  const maxRadius = 120600000;
 
   // Set a practical minimum radius for when zoomed in very close.
   const minRadius = 25; // 25 meters
 
+  const offset = 5;
+  const offsetZoom = Math.max(0, zoom - offset);
+
   // Each zoom level typically doubles the precision, so we divide the radius by 2^zoom.
   // We use Math.max to ensure the radius doesn't become impractically small (e.g., millimeters).
-  const calculatedRadius = maxRadius / Math.pow(2, zoom);
+  const calculatedRadius = maxRadius / Math.pow(2, offsetZoom);
 
   return Math.max(minRadius, calculatedRadius);
 };
