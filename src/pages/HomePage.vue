@@ -104,11 +104,15 @@
           @moveend="onMapMove" 
           @zoomend="onMapMove"
           @ready="onMapReady"
+          :max-bounds="maxBounds" 
+          :min-zoom="2"
+          :world-copy-jump="true"
         >
           <l-tile-layer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             layer-type="base"
             name="OpenStreetMap"
+            :no-wrap="true" 
           ></l-tile-layer>
         </l-map>
 
@@ -137,10 +141,12 @@
               v-if="currentModalItem.mediaType === 'video'" 
               :key="currentModalItem.id"
               :src="currentModalItem.fileUrl" 
+              :poster="currentModalItem.thumbnailUrl"
               class="modal-image"
               controls
               preload="metadata"
               muted
+              autoplay
               @error="handleVideoError"
               @loadstart="handleVideoLoadStart"
               @canplay="handleVideoCanPlay"
@@ -178,7 +184,7 @@
 import { ref, watchEffect, computed } from 'vue';
 import "leaflet/dist/leaflet.css";
 import { LMap, LTileLayer } from "@vue-leaflet/vue-leaflet";
-import L, { icon } from "leaflet";
+import L, { icon, latLngBounds } from "leaflet";
 
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
@@ -201,6 +207,11 @@ const mapCenter = ref([0, 0]);
 const mapInstance = ref(null);
 const markerClusterGroup = ref(null);
 const coordInput = ref('');
+
+const maxBounds = latLngBounds(
+  [-90, -180], // South-West
+  [90, 180]   // North-East
+);
 
 // Filter state
 const filters = ref({
@@ -294,6 +305,8 @@ const navigateToCoordinate = () => {
   // Use flyTo for a smooth animated transition
   const targetZoom = 18; // Zoom "all the way in"
   mapInstance.value.flyTo([lat, lng], targetZoom);
+
+  mapInstance.value.once('moveend', onMapMove);
 };
 
 // Function to format time strings to ISO format
@@ -1098,7 +1111,13 @@ watchEffect(() => {
 .modal-image {
   max-width: 100%;
   max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
+}
+
+.modal-image[data-orientation="vertical"] {
+  max-width: 60vh;
 }
 
 .modal-info {
