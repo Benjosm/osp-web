@@ -81,13 +81,22 @@
         <div class="grid-item" v-for="item in mediaItems" :key="item.id">
           <div class="thumbnail" :style="{ backgroundImage: `url(${item.thumbnailUrl})` }"></div>
           <h3 class="title">{{ item.title }}</h3>
-          <p class="created-at">Created: {{ new Date(item.createdAt).toLocaleDateString() }}</p>
+          <p class="created-at">Created: {{ formatDate(item.createdAt) }}</p>
           <p class="location">Location: {{ item.location?.lat?.toFixed(4) }}, {{ item.location?.lng?.toFixed(4) }}</p>
         </div>
       </div>
 
       <!-- Map View -->
       <div v-if="currentView === 'map'" class="map-container content-area">
+        <div class="navigate-container">
+          <input 
+            v-model="coordInput"
+            type="text" 
+            placeholder="Enter Lat, Lng"
+            @keyup.enter="navigateToCoordinate"
+          />
+          <button @click="navigateToCoordinate">Go</button>
+        </div>
         <l-map 
           ref="mapRef" 
           v-model:zoom="mapZoom" 
@@ -116,11 +125,32 @@
 
         <template v-if="currentModalItem">
           <div class="modal-image-container">
-            <img :src="currentModalItem.thumbnailUrl" :alt="currentModalItem.title" class="modal-image" />
+            <!-- <img :src="currentModalItem.thumbnailUrl" :alt="currentModalItem.title" class="modal-image" /> -->
+            <img 
+              v-if="currentModalItem.mediaType === 'image'" 
+              :key="currentModalItem.id"
+              :src="currentModalItem.fileUrl" 
+              :alt="currentModalItem.title" 
+              class="modal-image" 
+            />
+            <video 
+              v-if="currentModalItem.mediaType === 'video'" 
+              :key="currentModalItem.id"
+              :src="currentModalItem.fileUrl" 
+              class="modal-image"
+              controls
+              preload="metadata"
+              muted
+              @error="handleVideoError"
+              @loadstart="handleVideoLoadStart"
+              @canplay="handleVideoCanPlay"
+            >
+              Your browser does not support the video tag.
+            </video>
           </div>
           <div class="modal-info">
             <h3>{{ currentModalItem.title }}</h3>
-            <p><strong>Captured:</strong> {{ new Date(currentModalItem.createdAt).toLocaleString() }}</p>
+            <p><strong>Captured:</strong> {{ formatDate(currentModalItem.createdAt) }}</p>
             <p><strong>Location:</strong> {{ currentModalItem.location.lat.toFixed(6) }}, {{ currentModalItem.location.lng.toFixed(6) }}</p>
             <p v-if="currentModalItem.orientation">
               <strong>Orientation:</strong>
@@ -170,6 +200,7 @@ const mapCenter = ref([0, 0]);
 
 const mapInstance = ref(null);
 const markerClusterGroup = ref(null);
+const coordInput = ref('');
 
 // Filter state
 const filters = ref({
@@ -230,11 +261,75 @@ const clearFilters = () => {
   fetchMedia();
 };
 
+const navigateToCoordinate = () => {
+  if (!mapInstance.value) {
+    console.error("Map is not ready for navigation.");
+    alert("Map is not ready. Please wait a moment and try again.");
+    return;
+  }
+
+  const trimmedInput = coordInput.value.trim();
+  if (!trimmedInput) {
+    alert("Please enter coordinates.");
+    return;
+  }
+
+  // Allow comma, space, or both as separators
+  const parts = trimmedInput.split(/[\s,]+/);
+
+  if (parts.length !== 2) {
+    alert("Invalid format. Please use 'Latitude, Longitude' (e.g., '40.7128, -74.0060').");
+    return;
+  }
+
+  const lat = parseFloat(parts[0]);
+  const lng = parseFloat(parts[1]);
+
+  // Validate coordinates
+  if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    alert("Invalid coordinates. Latitude must be -90 to 90, Longitude -180 to 180.");
+    return;
+  }
+
+  // Use flyTo for a smooth animated transition
+  const targetZoom = 18; // Zoom "all the way in"
+  mapInstance.value.flyTo([lat, lng], targetZoom);
+};
+
 // Function to format time strings to ISO format
 const formatDateTime = (dateStr, timeStr) => {
   if (!dateStr) return null;
   const dateTimeStr = dateStr + (timeStr ? `T${timeStr}` : 'T00:00');
   return new Date(dateTimeStr).toISOString();
+};
+
+/**
+ * Formats an ISO 8601 date string into a user-friendly, local-timezone format.
+ * @param {string} dateString - The ISO date string from the API (e.g., "2023-10-27T10:30:00Z").
+ * @returns {string} A formatted local date and time string.
+ */
+const formatDate = (dateString) => {
+  if (!dateString) return 'Date not available';
+  
+  const date = new Date(dateString);
+  
+  // Check if the date is valid before formatting
+  if (isNaN(date.getTime())) {
+    return 'Invalid date';
+  }
+  
+  // toLocaleString() correctly converts the date to the user's browser timezone.
+  // We can pass options for more control over the output format.
+  const options = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  };
+  
+  return date.toLocaleString(undefined, options); // 'undefined' uses the browser's default locale.
 };
 
 const getLocalMidnight = (dateStr) => {
@@ -362,8 +457,10 @@ const fetchMedia = async () => {
       )
       .map(item => ({
         id: item.id,
-        title: `Media from ${new Date(item.capture_time).toLocaleDateString()}`,
-        thumbnailUrl: item.image_url,
+        title: `${item.file_path}`,
+        thumbnailUrl: item.image_url.toLowerCase().endsWith('.mp4') ? item.thumbnail_url : item.image_url,
+        fileUrl: item.image_url,
+        mediaType: item.image_url.toLowerCase().endsWith('.mp4') ? 'video' : 'image', // Determine type
         createdAt: item.capture_time,
         location: { lat: item.lat, lng: item.lng },
         coordinates: [item.lat, item.lng],
@@ -385,6 +482,19 @@ const fetchMedia = async () => {
       isFetchingMedia.value = false;
     }
   }
+};
+
+const handleVideoError = (event) => {
+  console.error('Video loading error:', event.target.error);
+  // You could show a user-friendly error message here
+};
+
+const handleVideoLoadStart = () => {
+  console.log('Video loading started');
+};
+
+const handleVideoCanPlay = () => {
+  console.log('Video can start playing');
 };
 
 // Function to handle map movement
@@ -534,6 +644,42 @@ watchEffect(() => {
 .toggle-btn.active {
   background-color: #007bff;
   color: white;
+}
+
+.navigate-container {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.navigate-container input {
+  padding: 10px 15px;
+  border: none;
+  font-size: 0.9rem;
+  outline: none;
+  width: 220px;
+}
+
+.navigate-container button {
+  padding: 10px 20px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+  border-left: 1px solid #0056b3;
+}
+
+.navigate-container button:hover {
+  background-color: #0056b3;
 }
 
 /* Filter Toggle Button */
@@ -711,6 +857,7 @@ watchEffect(() => {
 }
 
 .grid-item {
+  cursor: pointer;
   border: 1px solid #ddd;
   border-radius: 8px;
   overflow: hidden;
@@ -885,7 +1032,6 @@ watchEffect(() => {
   transition: opacity 0.2s ease;
 }
 
-/* FINAL CHANGE: Ensure preview image is fully visible and maintains aspect ratio */
 .hover-preview img {
   /* Set maximum dimensions to constrain size */
   max-width: 180px;
@@ -1050,7 +1196,7 @@ watchEffect(() => {
     max-width: 95vw;
     padding: 1.5rem;
   }
-  .modal-image {
+  .modal-media {
     max-height: 50vh;
   }
   .modal-info {

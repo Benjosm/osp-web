@@ -12,8 +12,26 @@
   <div v-else-if="media" class="media-detail-page">
     <h2>{{ media.title }}</h2>
     <p><strong>Description:</strong> {{ media.description }}</p>
-    <img :src="media.thumbnailUrl" :alt="media.title" class="media-image" />
-    <p><strong>Uploaded:</strong> {{ new Date(media.createdAt).toLocaleString() }}</p>
+    <div class="media-display-container">
+      <img :src="media.thumbnailUrl" :alt="media.title" class="media-image" />
+      <!-- <img 
+        v-if="mediaType === 'image'" 
+        :src="mediaFileUrl" 
+        :alt="media.title" 
+        class="image-content" 
+      />
+      <video 
+        v-else-if="mediaType === 'video'" 
+        :src="mediaFileUrl" 
+        class="media-content"
+        controls
+        autoplay
+        muted
+      >
+        Your browser does not support the video tag.
+      </video> -->
+    </div>
+    <p><strong>Captured:</strong> {{ formatDate(media.createdAt) }}</p>
     <p v-if="media.location"><strong>Location:</strong> {{ media.location }}</p>
     
     <section class="comments-section">
@@ -30,7 +48,7 @@
       <ul v-else-if="comments.length > 0" class="comment-list">
         <li v-for="comment in comments" :key="comment.id" class="comment-item">
           <p>{{ comment.text }}</p>
-          <small>{{ new Date(comment.createdAt).toLocaleString() }}</small>
+          <small>{{ formatDate(comment.createdAt) }}</small>
         </li>
       </ul>
       <p v-else>No comments yet.</p>
@@ -76,6 +94,43 @@ const errorPostComment = ref(null);
 
 const isLoading = computed(() => loadingMedia.value);
 const isAuthenticated = computed(() => !!localStorage.getItem('token'));
+
+const mediaType = computed(() => {
+  if (media.value && media.value.image_url) {
+    // We still use file_path here just to get the extension.
+    return media.value.image_url.toLowerCase().endsWith('.mp4') ? 'video' : 'image';
+  }
+  return 'image';
+});
+
+/**
+ * Formats an ISO 8601 date string into a user-friendly, local-timezone format.
+ * @param {string} dateString - The ISO date string from the API (e.g., "2023-10-27T10:30:00Z").
+ * @returns {string} A formatted local date and time string.
+ */
+const formatDate = (dateString) => {
+  if (!dateString) return 'Date not available';
+  
+  const date = new Date(dateString);
+  
+  // Check if the date is valid before formatting
+  if (isNaN(date.getTime())) {
+    return 'Invalid date';
+  }
+  
+  // toLocaleString() correctly converts the date to the user's browser timezone.
+  // We can pass options for more control over the output format.
+  const options = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  };
+  
+  return date.toLocaleString(undefined, options); // 'undefined' uses the browser's default locale.
+};
 
 const fetchMedia = async () => {
   loadingMedia.value = true;

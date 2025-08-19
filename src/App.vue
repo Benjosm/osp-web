@@ -3,7 +3,7 @@
   <div class="app-container">
     <!-- Regular header for non-fullscreen pages -->
     <header class="app-header" v-if="!isFullscreenRoute">
-      <h1>OSP Media</h1>
+      <h1>Open Source Panopticon</h1>
       <nav>
         <router-link to="/" class="nav-link">Home</router-link>
         <template v-if="isAuthenticated">
@@ -23,7 +23,7 @@
     <!-- Minimal overlay header for fullscreen pages -->
     <header class="overlay-header" v-if="isFullscreenRoute">
       <div class="overlay-nav">
-        <div class="brand">OSP Media</div>
+        <div class="brand">Open Source Panopticon</div>
         <nav class="overlay-nav-links">
           <template v-if="isAuthenticated">
             <router-link to="/account-settings" class="overlay-nav-link">Account</router-link>
@@ -124,12 +124,13 @@ html, body {
 
 .app-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
   border-bottom: 1px solid #eee;
   padding-bottom: 10px;
   flex-shrink: 0;
+  justify-content: center;
+  position: relative;
 }
 
 /* Overlay header for fullscreen routes */
@@ -146,9 +147,10 @@ html, body {
 
 .overlay-nav {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 15px 20px;
+  position: relative; /* This is key for positioning the links */
 }
 
 .brand {
@@ -161,6 +163,8 @@ html, body {
   display: flex;
   align-items: center;
   gap: 15px;
+  position: absolute; /* Take the nav out of the normal flow */
+  right: 20px; /* Position it on the right side */
 }
 
 .overlay-nav-link {
